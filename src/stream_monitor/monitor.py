@@ -80,9 +80,11 @@ def _run(config, plot: bool):
                 name=stream_name,
                 config=stream_config,
                 matchers=[
-                    _matchers.SoundPressureLevelRateOfChangeMatcher(stream_config),
+                    # This one doesn't work for all tests
+                    # _matchers.SoundPressureLevelRateOfChangeMatcher(stream_config),
                     # This one is a little too close for comfort
-                    # _matchers.VocoderMatcher(),
+                    # _matchers.VocoderMatcher(stream_config),
+                    _matchers.PitchConfidenceMatcher(stream_config),
                 ],
                 problem_callback=notifier.problem_detected_callback,
                 figure=figure,

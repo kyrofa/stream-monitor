@@ -7,20 +7,17 @@ from stream_monitor import _config
 import pytest
 
 
-@pytest.fixture(
-    "session", params=[pathlib.Path(__file__).parent.joinpath("data/normal.mp3")],
-)
+def _data_files(subdir: str):
+    data_dir = pathlib.Path(__file__).parent.joinpath(f"data/{subdir}")
+    return [d for d in data_dir.iterdir()]
+
+
+@pytest.fixture("session", params=_data_files("normal"))
 def test_data_normal_path(request):
     return request.param
 
 
-@pytest.fixture(
-    "session",
-    params=[
-        pathlib.Path(__file__).parent.joinpath("data/silence.mp3"),
-        pathlib.Path(__file__).parent.joinpath("data/off-the-air.mp3"),
-    ],
-)
+@pytest.fixture("session", params=_data_files("bad"))
 def test_data_bad_path(request):
     return request.param
 

@@ -204,8 +204,5 @@ def test_monitor_bad(test_data_bad_path, config_file):
         assert error.value.stream_name == "stream"
 
     mock_problem_detected_callback.assert_called_once_with(
-        mock.ANY,
-        "stream",
-        _matchers.SoundPressureLevelRateOfChangeMatcher.name,
-        mock.ANY,
+        mock.ANY, "stream", _matchers.PitchConfidenceMatcher.name, mock.ANY,
     )

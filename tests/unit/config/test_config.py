@@ -44,7 +44,7 @@ def test_config_threshold(config_file):
     # Test default threshold
     config = _config.Config(file_path)
     stream_config = config.stream_config("stream")
-    assert stream_config.threshold() == 10.0
+    assert stream_config.threshold() == 0.6
 
     file_path = config_file(
         textwrap.dedent(

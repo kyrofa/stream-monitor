@@ -17,7 +17,7 @@ _THRESHOLD_KEY = "threshold"
 _TIMEOUT_KEY = "timeout"
 _COOLDOWN_KEY = "cooldown"
 
-_DEFAULT_THRESHOLD = 10.0  # 10 dB
+_DEFAULT_THRESHOLD = 0.6  # Pitch confidence
 _DEFAULT_TIMEOUT = 60.0  # One minute
 _DEFAULT_COOLDOWN = 3600.0  # One hour
 
