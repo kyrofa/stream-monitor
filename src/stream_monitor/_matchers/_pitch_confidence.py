@@ -7,7 +7,7 @@ from .. import _config
 
 
 _WINDOW_SIZE = 4096
-_HOP_SIZE = 256
+_HOP_SIZE = 2048
 
 
 class PitchConfidenceMatcher(_matcher.Matcher):

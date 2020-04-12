@@ -1,14 +1,13 @@
 import datetime
 import pathlib
 import tempfile
-import textwrap
 from typing import Callable, Dict, Iterable
 
 import aubio
 
-from . import _config, _errors, _matchers, _plotting
+from . import _config, _errors, _matchers
 
-_HOP_SIZE = 256
+_HOP_SIZE = 2048
 
 
 class Stream:
@@ -18,8 +17,6 @@ class Stream:
         config: _config.StreamConfig,
         matchers: Iterable[_matchers.Matcher],
         problem_callback: Callable[[str, str, pathlib.Path], None],
-        *,
-        figure=None,
     ) -> None:
         self._name = name
         self._url = config.url()
@@ -30,35 +27,33 @@ class Stream:
         self._matchers = list(matchers)
 
         # Open stream
-        self._source = aubio.source(self._url, hop_size=_HOP_SIZE)
+        self._open()
 
         self._required_cooldown_sample_count = self._cooldown * self._source.samplerate
         self._cooldown_sample_count = 0
         self._in_cooldown = False
 
-        self._plot = None
-        if figure:
-            self._plot = _plotting.Plot(figure)
-
     def close(self) -> None:
         self._source.close()
 
-    def __str__(self) -> str:
-        return textwrap.dedent(
-            f"""\
-            {self._name}:
-                url: {self._url}
-                timeout: {self._timeout}
-                cooldown: {self._cooldown}"""
-        )
+    def _open(self) -> None:
+        self._source = aubio.source(self._url, hop_size=_HOP_SIZE)
 
     def process_hop(self):
-        samples, sample_count = self._source()
+        try:
+            samples, sample_count = self._source()
+        except RuntimeError:
+            # Got an error of some sort... try reloading the source
+            self.close()
+            self._open()
+            samples, sample_count = self._source()
 
-        self._process_samples(samples, sample_count)
+        data = self._process_samples(samples, sample_count)
 
         if sample_count < self._source.hop_size:
             raise _errors.EndOfStreamError(self._name)
+
+        return data
 
     def _process_samples(self, samples: aubio.fvec, sample_count: int):
         # Skip this set of samples if we're in cooldown
@@ -93,5 +88,4 @@ class Stream:
                     # Trigger cooldown period
                     self._in_cooldown = True
 
-        if self._plot:
-            self._plot.update(sample_count / self._source.samplerate, data)
+        return (sample_count / self._source.samplerate, data)
