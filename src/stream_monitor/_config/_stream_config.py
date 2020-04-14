@@ -14,10 +14,12 @@ _FROM_EMAIL_KEY = "from_email"
 _TO_EMAILS_KEY = "to_emails"
 
 _THRESHOLD_KEY = "threshold"
+_PRECEDING_DURATION_KEY = "preceding_duration"
 _TIMEOUT_KEY = "timeout"
 _COOLDOWN_KEY = "cooldown"
 
 _DEFAULT_THRESHOLD = 0.7  # Pitch confidence
+_DEFAULT_PRECEDING_DURATION = 30.0  # Thirty seconds
 _DEFAULT_TIMEOUT = 60.0  # One minute
 _DEFAULT_COOLDOWN = 3600.0  # One hour
 
@@ -30,7 +32,7 @@ _REQUIRED_KEYS = {
     _FROM_EMAIL_KEY,
     _TO_EMAILS_KEY,
 }
-_OPTIONAL_KEYS = {_THRESHOLD_KEY, _TIMEOUT_KEY, _COOLDOWN_KEY}
+_OPTIONAL_KEYS = {_THRESHOLD_KEY, _PRECEDING_DURATION_KEY, _TIMEOUT_KEY, _COOLDOWN_KEY}
 
 
 def _load_config(config_section: configparser.SectionProxy):
@@ -80,6 +82,11 @@ class StreamConfig:
 
     def threshold(self) -> float:
         return self._config.getfloat(_THRESHOLD_KEY, _DEFAULT_THRESHOLD)
+
+    def preceding_duration(self) -> float:
+        return self._config.getfloat(
+            _PRECEDING_DURATION_KEY, _DEFAULT_PRECEDING_DURATION
+        )
 
     def timeout(self) -> float:
         return self._config.getfloat(_TIMEOUT_KEY, _DEFAULT_TIMEOUT)

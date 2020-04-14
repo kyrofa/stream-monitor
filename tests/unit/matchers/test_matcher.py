@@ -1,7 +1,6 @@
 import textwrap
 
 import aubio
-import numpy
 
 import pytest
 
@@ -51,8 +50,6 @@ def test_matcher_false(config):
     sample_count = 256
     samples = aubio.fvec(sample_count)
     assert matcher.process_samples(samples, sample_count) == (42, False)
-    assert matcher.match_sample_count() == 0
-    assert len(matcher.match_samples()) == 0
 
 
 def test_matcher_true(config):
@@ -69,12 +66,3 @@ def test_matcher_true(config):
     sample_count = 256
     samples = aubio.fvec(sample_count)
     assert matcher.process_samples(samples, sample_count) == (42, True)
-    assert matcher.match_sample_count() == sample_count
-    match_samples = matcher.match_samples()
-    assert len(match_samples) == 1
-    assert all(numpy.equal(match_samples[0], samples))
-
-    # Also assert that resetting does the expected
-    matcher.reset()
-    assert matcher.match_sample_count() == 0
-    assert len(matcher.match_samples()) == 0

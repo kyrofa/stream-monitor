@@ -1,7 +1,9 @@
+import collections
 import datetime
+import math
 import pathlib
 import tempfile
-from typing import Callable, Dict, Iterable
+from typing import Callable, Deque, Dict, Iterable
 
 import aubio
 
@@ -22,6 +24,7 @@ class Stream:
         self._url = config.url()
         self._timeout = config.timeout()
         self._cooldown = config.cooldown()
+        self._preceding_duration = config.preceding_duration()
 
         self._problem_callback = problem_callback
         self._matchers = list(matchers)
@@ -32,6 +35,14 @@ class Stream:
         self._required_cooldown_sample_count = self._cooldown * self._source.samplerate
         self._cooldown_sample_count = 0
         self._in_cooldown = False
+
+        self._match_sample_count = 0
+        window_sample_count = (
+            self._preceding_duration + self._timeout
+        ) * self._source.samplerate
+        self._window_samples: Deque[aubio.fvec] = collections.deque(
+            maxlen=math.ceil(window_sample_count / _HOP_SIZE)
+        )
 
     def close(self) -> None:
         self._source.close()
@@ -47,6 +58,8 @@ class Stream:
             self.close()
             self._open()
             samples, sample_count = self._source()
+
+        self._window_samples.append(samples.copy())
 
         data = self._process_samples(samples, sample_count)
 
@@ -71,7 +84,8 @@ class Stream:
             data[matcher.name] = value
 
             if match:
-                seconds = matcher.match_sample_count() / self._source.samplerate
+                self._match_sample_count += sample_count
+                seconds = self._match_sample_count / self._source.samplerate
                 if seconds > self._timeout:
                     timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
                     path = pathlib.Path(
@@ -79,13 +93,15 @@ class Stream:
                     )
 
                     with aubio.sink(str(path), self._source.samplerate) as output:
-                        for match_samples in matcher.match_samples():
+                        for match_samples in self._window_samples:
                             output(match_samples, self._source.hop_size)
-                    matcher.reset()
 
                     self._problem_callback(self._name, matcher.name, path)
 
                     # Trigger cooldown period
                     self._in_cooldown = True
+                    self._match_sample_count = 0
+            else:
+                self._match_sample_count = 0
 
         return (sample_count / self._source.samplerate, data)

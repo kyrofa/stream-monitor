@@ -62,6 +62,37 @@ def test_config_threshold(config_file):
     assert stream_config.threshold() == 20.5
 
 
+def test_config_preceding_duration(config_file):
+    file_path = config_file(
+        textwrap.dedent(
+            """\
+            [stream]
+            url = foo
+            """
+        )
+    )
+
+    # Test default preceding_duration
+    config = _config.Config(file_path)
+    stream_config = config.stream_config("stream")
+    assert stream_config.preceding_duration() == 30.0
+
+    file_path = config_file(
+        textwrap.dedent(
+            """\
+            [stream]
+            url = foo
+            preceding_duration = 20.5
+            """
+        )
+    )
+
+    # Test configured preceding_duration
+    config = _config.Config(file_path)
+    stream_config = config.stream_config("stream")
+    assert stream_config.preceding_duration() == 20.5
+
+
 def test_config_timeout(config_file):
     file_path = config_file(
         textwrap.dedent(

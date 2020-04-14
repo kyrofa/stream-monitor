@@ -24,11 +24,23 @@ class Notifier:
             f"{stream_config.timeout()} second(s)"
         )
 
+        timeout = stream_config.timeout()
         message = (
             f"Hello,\n\n"
             f"Stream Monitor has detected an issue on stream '{stream_name!s}' "
-            f"for {stream_config.timeout()} second(s). Please listen to the "
-            f"attached audio sample to confirm and take appropriate action. "
+            f"for {timeout} second(s). Please listen to the attached audio sample "
+            f"to confirm and take appropriate action. "
+        )
+
+        preceding_duration = stream_config.preceding_duration()
+        if preceding_duration > 0:
+            message += (
+                f"Note that the sample begins with the last {preceding_duration} "
+                f"seconds of audio before the problem was detected, followed by "
+                f"the {timeout} seconds of audio considered problematic. "
+            )
+
+        message += (
             f"You won't be notified again for {stream_config.cooldown()} "
             f"second(s).\n\n"
             f"Thanks for using Stream Monitor!"
