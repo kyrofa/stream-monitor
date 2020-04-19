@@ -4,7 +4,8 @@ version: git
 summary: Monitor your web streams
 description: |
   Stream Monitor will continuously monitor any number of web streams for
-  problems. If it detects silence, or constant noise, it will email you.
+  problems. It will email you if it detects silence, constant noise, or
+  similar issues.
 
 grade: stable
 confinement: strict
@@ -32,6 +33,7 @@ parts:
     plugin: python
     source: https://github.com/aubio/aubio.git
     source-branch: 0.4.9
+    source-depth: 1
     requirements: [requirements.txt]
     build-packages:
       - libavresample-dev
@@ -42,69 +44,8 @@ parts:
       - pkg-config
 
     stage-packages:
-      - libavcodec57
-      - libavformat57
+      - libavresample3
       - libavutil55
-      - libbluray2
-      - libcairo2
-      - libchromaprint1
-      - libcroco3
-      - libcrystalhd3
-      - libdatrie1
-      - libdrm2
-      - libfontconfig1
-      - libfreetype6
-      - libgdk-pixbuf2.0-0
-      - libgme0
-      - libgomp1
-      - libgraphite2-3
-      - libgsm1
-      - libharfbuzz0b
-      - libicu60
-      - libmp3lame0
-      - libmpg123-0
-      - libnuma1
-      - libogg0
-      - libopenjp2-7
-      - libopenmpt0
-      - libopus0
-      - libpango-1.0-0
-      - libpangocairo-1.0-0
-      - libpangoft2-1.0-0
-      - libpixman-1-0
-      - libpng16-16
-      - librsvg2-2
-      - libshine3
-      - libsnappy1v5
-      - libsoxr0
-      - libspeex1
-      - libssh-gcrypt-4
+      - libavformat57
+      - libavcodec57
       - libswresample2
-      - libthai0
-      - libtheora0
-      - libtwolame0
-      - libva-drm2
-      - libva-x11-2
-      - libva2
-      - libvdpau1
-      - libvorbis0a
-      - libvorbisenc2
-      - libvorbisfile3
-      - libvpx5
-      - libwavpack1
-      - libwebp6
-      - libwebpmux3
-      - libx11-6
-      - libx264-152
-      - libx265-146
-      - libxau6
-      - libxcb-render0
-      - libxcb-shm0
-      - libxcb1
-      - libxdmcp6
-      - libxext6
-      - libxfixes3
-      - libxml2
-      - libxrender1
-      - libxvidcore4
-      - libzvbi0
