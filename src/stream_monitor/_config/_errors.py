@@ -57,14 +57,25 @@ class StreamConfigUnexpectedKeysError(ConfigurationError):
         )
 
 
-class StreamConfigToEmailsFormatError(ConfigurationError):
-    def __init__(self, to_emails: str) -> None:
+class StreamConfigEmailsFormatError(ConfigurationError):
+    def __init__(self, key: str, to_emails: str) -> None:
+        self.key = key
         self.to_emails = to_emails
 
         super().__init__(
-            f"invalid 'to_emails': {to_emails}. It should be a list with quoted "
+            f"invalid '{key}': {to_emails}. It should be a list with quoted "
             'items, e.g. ["email@example.com"]'
         )
+
+
+class StreamConfigToEmailsFormatError(StreamConfigEmailsFormatError):
+    def __init__(self, to_emails: str) -> None:
+        super().__init__("to_emails", to_emails)
+
+
+class StreamConfigToSmsEmailsFormatError(StreamConfigEmailsFormatError):
+    def __init__(self, to_sms_emails: str) -> None:
+        super().__init__("to_sms_emails", to_sms_emails)
 
 
 class ConfigFileParsingError(InvalidConfigError):

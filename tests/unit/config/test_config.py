@@ -284,31 +284,33 @@ def test_invalid_config_unexpected_key(config_file):
     )
 
 
-def test_multiple_to_email_addresses(config_file):
+@pytest.mark.parametrize("key", ("to_emails", "to_sms_emails"))
+def test_multiple_to_email_addresses(key, config_file):
     file_path = config_file(
         textwrap.dedent(
-            """\
+            f"""\
             [stream]
             url = foo
-            to_emails = ["email1@example.com", "email2@example.com"]
+            {key} = ["email1@example.com", "email2@example.com"]
             """
         )
     )
 
     config = _config.Config(file_path)
-    assert set(config.stream_config("stream").to_emails()) == {
+    assert set(getattr(config.stream_config("stream"), key)()) == {
         "email1@example.com",
         "email2@example.com",
     }
 
 
-def test_invalid_to_emails(config_file):
+@pytest.mark.parametrize("key", ("to_emails", "to_sms_emails"))
+def test_invalid_to_emails(key, config_file):
     file_path = config_file(
         textwrap.dedent(
-            """\
+            f"""\
             [stream]
             url = foo
-            to_emails = email1@example.com
+            {key} = email1@example.com
             """
         )
     )
@@ -317,5 +319,19 @@ def test_invalid_to_emails(config_file):
         _config.Config(file_path)
 
     assert f"Error processing config file '{file_path!s}': improper configuration "
-    "detected for stream 'stream': invalid 'to_emails': email1@example.com. It "
+    f"detected for stream 'stream': invalid '{key}': email1@example.com. It "
     'should be a list with quoted items, e.g. ["email@example.com"]' in str(error.value)
+
+
+def test_default_to_sms_emails(config_file):
+    file_path = config_file(
+        textwrap.dedent(
+            f"""\
+            [stream]
+            url = foo
+            """
+        )
+    )
+
+    config = _config.Config(file_path)
+    assert config.stream_config("stream").to_sms_emails() == list()

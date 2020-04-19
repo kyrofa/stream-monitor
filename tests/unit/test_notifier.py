@@ -129,3 +129,57 @@ def test_notifier_ssl_v3(config, test_data_normal_path):
             mock.call().quit(),
         ]
     )
+
+
+def test_notifier_sends_sms(config, test_data_normal_path):
+    notifier = _notifier.Notifier(
+        config(
+            textwrap.dedent(
+                f"""\
+                [stream]
+                url = foo
+                smtp_server = smtp.example.com
+                smtp_server_port = 25
+                smtp_login = login
+                smtp_password = password
+                from_email = from@example.com
+                to_emails = ["to@example.com"]
+                to_sms_emails = ["1234567890@example.com"]
+                """
+            ),
+            smtp_settings=False,
+        )
+    )
+
+    with mock.patch(
+        "stream_monitor._notifier._send_email", autospec=True
+    ) as mock_send_email:
+        notifier.problem_detected_callback("stream", "foo", test_data_normal_path)
+
+    mock_send_email.assert_has_calls(
+        [
+            mock.call(
+                "smtp.example.com",
+                25,
+                "login",
+                "password",
+                "from@example.com",
+                ["1234567890@example.com"],
+                None,
+                mock.ANY,
+                None,
+            ),
+            mock.call(
+                "smtp.example.com",
+                25,
+                "login",
+                "password",
+                "from@example.com",
+                ["to@example.com"],
+                "Stream Monitor: problem detected on stream",
+                mock.ANY,
+                mock.ANY,
+            ),
+        ],
+        any_order=True,
+    )

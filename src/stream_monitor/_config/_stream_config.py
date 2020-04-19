@@ -12,6 +12,7 @@ _SMTP_LOGIN_KEY = "smtp_login"
 _SMTP_PASSWORD_KEY = "smtp_password"
 _FROM_EMAIL_KEY = "from_email"
 _TO_EMAILS_KEY = "to_emails"
+_TO_SMS_EMAILS_KEY = "to_sms_emails"
 
 _THRESHOLD_KEY = "threshold"
 _PRECEDING_DURATION_KEY = "preceding_duration"
@@ -32,7 +33,13 @@ _REQUIRED_KEYS = {
     _FROM_EMAIL_KEY,
     _TO_EMAILS_KEY,
 }
-_OPTIONAL_KEYS = {_THRESHOLD_KEY, _PRECEDING_DURATION_KEY, _TIMEOUT_KEY, _COOLDOWN_KEY}
+_OPTIONAL_KEYS = {
+    _THRESHOLD_KEY,
+    _PRECEDING_DURATION_KEY,
+    _TIMEOUT_KEY,
+    _COOLDOWN_KEY,
+    _TO_SMS_EMAILS_KEY,
+}
 
 
 def _load_config(config_section: configparser.SectionProxy):
@@ -45,12 +52,19 @@ def _load_config(config_section: configparser.SectionProxy):
     if unexpected_keys:
         raise _errors.StreamConfigUnexpectedKeysError(unexpected_keys)
 
-    # Make sure to_emails is valid json
+    # Make sure to_emails and to_sms_emails are valid json
+    to_emails = config_section[_TO_EMAILS_KEY]
     try:
-        to_emails = config_section[_TO_EMAILS_KEY]
         json.loads(to_emails)
     except json.decoder.JSONDecodeError as e:
         raise _errors.StreamConfigToEmailsFormatError(to_emails) from e
+
+    to_emails = config_section.get(_TO_SMS_EMAILS_KEY)
+    if to_emails:
+        try:
+            json.loads(to_emails)
+        except json.decoder.JSONDecodeError as e:
+            raise _errors.StreamConfigToSmsEmailsFormatError(to_emails) from e
 
     return config_section
 
@@ -79,6 +93,10 @@ class StreamConfig:
 
     def to_emails(self) -> List[str]:
         return json.loads(self._config[_TO_EMAILS_KEY])
+
+    def to_sms_emails(self) -> List[str]:
+        json_string = self._config.get(_TO_SMS_EMAILS_KEY, "[]")
+        return json.loads(json_string)
 
     def threshold(self) -> float:
         return self._config.getfloat(_THRESHOLD_KEY, _DEFAULT_THRESHOLD)
