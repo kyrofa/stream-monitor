@@ -6,6 +6,7 @@ import tempfile
 from typing import Callable, Deque, Dict, Iterable
 
 import aubio
+import pydub
 
 from . import _config, _errors, _matchers
 
@@ -87,16 +88,7 @@ class Stream:
                 self._match_sample_count += sample_count
                 seconds = self._match_sample_count / self._source.samplerate
                 if seconds > self._timeout:
-                    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
-                    path = pathlib.Path(
-                        f"{tempfile.gettempdir()}/{self._name}_{timestamp}.wav"
-                    )
-
-                    with aubio.sink(str(path), self._source.samplerate) as output:
-                        for match_samples in self._window_samples:
-                            output(match_samples, self._source.hop_size)
-
-                    self._problem_callback(self._name, matcher.name, path)
+                    self._handle_detected_problem(matcher.name)
 
                     # Trigger cooldown period
                     self._in_cooldown = True
@@ -105,3 +97,32 @@ class Stream:
                 self._match_sample_count = 0
 
         return (sample_count / self._source.samplerate, data)
+
+    def _handle_detected_problem(self, matcher_name: str) -> None:
+        now = datetime.datetime.now()
+        datestamp = now.strftime("%Y-%m-%d")
+        timestamp = now.strftime("%H:%M:%S")
+        path = pathlib.Path(
+            f"{tempfile.gettempdir()}/{self._name}_{datestamp}_{timestamp}.mp3"
+        )
+
+        # aubio only supports writing wav files, so use pydub to convert it to mp3
+        with tempfile.NamedTemporaryFile(suffix=".wav") as f:
+            with aubio.sink(f.name, self._source.samplerate) as output:
+                for match_samples in self._window_samples:
+                    output(match_samples, self._source.hop_size)
+
+            wav_file = pydub.AudioSegment.from_wav(f)
+            wav_file.export(
+                path,
+                format="mp3",
+                tags={
+                    "artist": "Stream Monitor",
+                    "title": f"Problematic audio from stream {self._name} on {datestamp} at {timestamp}",
+                },
+            )
+
+            try:
+                self._problem_callback(self._name, matcher_name, path)
+            finally:
+                path.unlink()

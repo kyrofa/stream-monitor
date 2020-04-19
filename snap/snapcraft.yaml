@@ -28,6 +28,13 @@ parts:
     requirements: [requirements.txt]
     after: [aubio]
 
+    build-packages:
+      - ffmpeg
+
+    stage-packages:
+      - ffmpeg
+      - libslang2
+
   # Can't seem to be able to install this from pip for some reason
   aubio:
     plugin: python

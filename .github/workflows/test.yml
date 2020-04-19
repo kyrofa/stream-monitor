@@ -9,7 +9,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Install system dependencies
-        run: sudo apt-get update -qq && sudo apt-get install python3-pip python3-setuptools libavresample-dev libavformat-dev libswresample-dev libavutil-dev libavcodec-dev pkg-config
+        run: sudo apt-get update -qq && sudo apt-get install python3-pip python3-setuptools libavresample-dev libavformat-dev libswresample-dev libavutil-dev libavcodec-dev pkg-config ffmpeg
       - name: Install package and pip dependencies
         run: python3 -m pip install -r requirements.txt -r requirements-dev.txt .
       - name: Run static tests
