@@ -1,4 +1,4 @@
-black==19.10b0
+black==26.3.1
 flake8==3.7.9
 mypy==0.770
 pytest==5.3.5
